@@ -8,22 +8,60 @@ export class MyGallery extends LitElement {
 
     constructor() {
         super();
-        this.title = "image gallery";
+        this.images = [
+            "https://upload.wikimedia.org/wikipedia/en/8/8e/IST_Building_PSU.jpg",
+            "https://bpb-us-e1.wpmucdn.com/sites.psu.edu/dist/5/117956/files/2020/05/Westgate-Bldg-5-052520.jpg",
+            "https://i0.wp.com/images.onwardstate.com/uploads/2019/03/IMG_4096.jpeg?fit=4032%2C3024&ssl=1",
+            "https://pbs.twimg.com/media/EkI_7v8XYAYqBO3.jpg",
+            "https://vinoly.com/wp-content/uploads/2016/05/PSIST_1-1778x1000.jpg",
+            "https://ericacfleming.com/wp-content/uploads/2021/11/Westgate-Sunny-scaled-e1636471162824-1024x581.jpg"
+        ];
+        this.caption = [
+            "Westgate 1",
+            "Westgate 2",
+            "Westgate 3",
+            "Westgate 4",
+            "Westgate 5",
+            "Westgate 6"
+        ];
+        this.slide = 0;
     }
 
     static get styles() {
         return css`
             :host {
                 display: block;
+                background-color: black;
+            }
+            h1 {
+                color: white;
+            }
+            .image-list {
+                display: flex;
+                justify-content: space-between;
+                flex-wrap: wrap;
+                margin-top: 20px;
+            }
+            .image-list img {
+                width: calc(33% - 40px);
+                margin-bottom: 20px;
+                transition: transform 0.5s;
+                border: white solid 2px;
+                border-radius: 20px;
+                filter: grayscale(1);
+                cursor: pointer;
+            }
+            .image-list img:hover {
+                transform: scale(1.1);
+                filter: grayscale(0);
             }
             .image-gallery {
                 position: relative;
+                display: all;
             }
             .image {
-                display: none;
-            }
-            .thumbnail:hover {
-                cursor: pointer;
+                display: all;
+                width: 100%;
             }
             .back,
             .next {
@@ -69,9 +107,16 @@ export class MyGallery extends LitElement {
             .column {
                 float: left;
                 width: 16.66%;
+                display: inline-flex;
             }
             .thumbnail {
                 opacity: 0.6;
+                width: 100%;
+                filter: grayscale(1);
+            }
+            .thumbnail:hover {
+                cursor: pointer;
+                filter: grayscale(0);
             }
             .active,
             .thumbnail:hover {
@@ -83,43 +128,35 @@ export class MyGallery extends LitElement {
     render() {
         return html` 
         <h1>image gallery</h1>
+        <div class="image-list">
+            ${this.images.map((image, index) => html`
+                <img src="${image}" @click="${() => this.showSlides(index)}">
+            `)}
+        </div>
         <div class="image-gallery">
-            <div class="image">
-                <div class="image-number">1 / 4</div>
-                <img src="https://upload.wikimedia.org/wikipedia/en/8/8e/IST_Building_PSU.jpg" style="width: 100%;">
-            </div>
-            <div class="image">
-                <div class="image-number">2 / 4</div>
-                <img src="https://bpb-us-e1.wpmucdn.com/sites.psu.edu/dist/5/117956/files/2020/05/Westgate-Bldg-5-052520.jpg" style="width: 100%;">
-            </div>
-            <div class="image">
-                <div class="image-number">3 / 4</div>
-                <img src="https://i0.wp.com/images.onwardstate.com/uploads/2019/03/IMG_4096.jpeg?fit=4032%2C3024&ssl=1" style="width: 100%;">
-            </div>
-            <div class="image">
-                <div class="image-number">4 / 4</div>
-                <img src="https://pbs.twimg.com/media/EkI_7v8XYAYqBO3.jpg" style="width: 100%;">
+            <div class="image-wrapper">
+                ${this.images.map((image, index) => html`
+                    <div class="image-number">${index} / ${this.images.length}</div>
+                    <img class="image" src="${image}">
+                `)}
             </div>
 
-            <a class="back"> < </a>
-            <a class="next"> > </a>
+            <a class="back" @click="${this.backSlide}"> < </a>
+            <a class="next" @click="${this.nextSlide}"> > </a>
 
             <div class="caption-container">
-                <p id="caption"></p>
+                <p id="caption">
+                    ${this.caption.map((caption, index) => html`
+                        ${caption}
+                    `)}
+                </p>
             </div>
 
             <div class="row">
                 <div class="column">
-                    <img class="thumbnail" src="https://upload.wikimedia.org/wikipedia/en/8/8e/IST_Building_PSU.jpg" style="width:100%" alt="West Building 1">
-                </div>
-                <div class="column">
-                    <img class="thumbnail" src="https://bpb-us-e1.wpmucdn.com/sites.psu.edu/dist/5/117956/files/2020/05/Westgate-Bldg-5-052520.jpg" style="width:100%" alt="West Building 2">
-                </div>
-                <div class="column">
-                    <img class="thumbnail" src="https://i0.wp.com/images.onwardstate.com/uploads/2019/03/IMG_4096.jpeg?fit=4032%2C3024&ssl=1" style="width:100%" alt="West Building 3">
-                </div>
-                <div class="column">
-                    <img class="thumbnail" src="https://pbs.twimg.com/media/EkI_7v8XYAYqBO3.jpg" style="width:100%" alt="West Building 4">
+                    ${this.images.map((image, index) => html`
+                        <img class="thumbnail" src="${image}" @click="${() => this.showSlides(index)}">
+                    `)}
                 </div>
             </div>
         </div>
@@ -128,68 +165,67 @@ export class MyGallery extends LitElement {
 
     static get properties() {
         return {
-            title: { type: String }
+            images: { type: Array },
+            caption: { type: Array },
+            slide: { type : Number }
         };
     }
 }
 
 
-/*
-THIS IS A MESS AND I HAVE NO IDEA WHAT IM DOING :DDDDDDD
 
-// register globally so we can make sure there is only one
-window.SimpleModal = window.SimpleModal || {};
-// request if this exists. This helps invoke the element existing in the dom
-// as well as that there is only one of them. That way we can ensure everything
-// is rendered through the same modal
-window.SimpleModal.requestAvailability = () => {
-    if (!window.SimpleModal.instance) {
-        window.SimpleModal.instance = document.createElement("simple-modal");
-        document.body.appendChild(window.SimpleModal.instance);
-    }
-    return window.SimpleModal.instance;
-};
+// //STILL A MESS BUT I HAVE AN IDEA OF WHAT IM DOING ! (i think)
 
-showSlides(n) 
-{
-    let i;
-    let slides = document.getElementsByClassName("image");
-    let dots = document.getElementsByClassName("thumbnail");
-    let captionText = document.getElementById("caption");
+// // register globally so we can make sure there is only one
+// window.SimpleModal = window.SimpleModal || {};
+// // request if this exists. This helps invoke the element existing in the dom
+// // as well as that there is only one of them. That way we can ensure everything
+// // is rendered through the same modal
+// window.SimpleModal.requestAvailability = () => {
+//     if (!window.SimpleModal.instance) {
+//         window.SimpleModal.instance = document.createElement("simple-modal");
+//         document.body.appendChild(window.SimpleModal.instance);
+//     }
+//     return window.SimpleModal.instance;
+// };
 
-    if (n > slides.length) {
-        slideIndex = 1;
-    }
-    if (n < 1) {
-        slideIndex = slides.length;
-    }
-    for (i = 0; i < slides.length; i++) {
-        slides[i].style.display = "none";
-    }
-    for (i = 0; i < dots.length; i++) {
-        dots[i].className = dots[i].className.replace("active", "");
-    }
+// export const SimpleModalStore = window.SimpleModal.requestAvailability();
 
-    slides[slideIndex-1].style.display = "block";
-    dots[slideIndex-1].className += "active";
-    captionText.innerHTML = dots[slideIndex-1].alt;
-}
+// showSlides(n) 
+// {   
+//     this.slide = n;
+    
+//     thumbnail = document.getElementsByClassName("thumbnail");
+//     captionText = document.getElementById("caption");
 
-let slideIndex = 1;
-showSlides(slideIndex);
+//     for (i = 0; i < this.images.length; i++) {
+//         if(i !== n) {
+//             this.slide = n;
+//             images[i].style.display = "none";
+//         }
+//     }
+//     for (i = 0; i < thumbnail.length; i++) {
+//         if(i === n) {
+//             thumbnail[i].className.replace("active", "");
+//         }
+//     }
 
-plusSlides(n) 
-{
-  showSlides(slideIndex += n);
-}
+//     this.images[this.slide - 1].style.display = "block";
+//     thumbnail[this.slide - 1].className += "active";
+//     captionText.innerHTML = this.caption[this.slide - 1];
+    
+// }
 
-currentSlide(n) 
-{
-  showSlides(slideIndex = n);
-}
 
-export const SimpleModalStore = window.SimpleModal.requestAvailability();
-*/
+// backSlide() 
+// {
+//   showSlides(this.slide - 1);
+// }
+
+// nextSlide() 
+// {
+//   showSlides(this.slide + 1);
+// }
 
 
 globalThis.customElements.define(MyGallery.tag, MyGallery);
