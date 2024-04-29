@@ -25,6 +25,7 @@ export class MyGallery extends LitElement {
             "Westgate 6"
         ];
         this.slide = 0;
+        this.show = false;
     }
 
     static get styles() {
@@ -40,6 +41,7 @@ export class MyGallery extends LitElement {
                 display: flex;
                 justify-content: space-between;
                 flex-wrap: wrap;
+                position: relative;
                 margin-top: 20px;
             }
             .image-list img {
@@ -47,7 +49,6 @@ export class MyGallery extends LitElement {
                 margin-bottom: 20px;
                 transition: transform 0.5s;
                 border: white solid 2px;
-                border-radius: 20px;
                 filter: grayscale(1);
                 cursor: pointer;
             }
@@ -55,13 +56,38 @@ export class MyGallery extends LitElement {
                 transform: scale(1.1);
                 filter: grayscale(0);
             }
-            .image-gallery {
-                position: relative;
-                display: all;
+            #image-gallery {
+                top: 0;
+                position: absolute;
+                margin: 128px;
+                border-radius: 20px 20px 0 0;
+                background-color: black;
+                border: white solid 4px;
+                display: none;
             }
-            .image {
-                display: all;
-                width: 100%;
+            #image {
+                display: block;
+                margin: auto;
+                height: 480px;
+                width: 720px;
+            }
+            .close {
+                cursor: pointer;
+                top: 0;
+                right: 0;
+                color: white;
+                background-color: red;
+                border-radius: 0px 12px 0 0;
+                font-weight: bold;
+                font-size: 20px;
+                padding: 8px;
+                margin: 8px;
+                border: white solid 2px;
+                position: absolute;
+            }
+            .close:hover {
+                color: red;
+                background-color: white;
             }
             .back,
             .next {
@@ -75,6 +101,7 @@ export class MyGallery extends LitElement {
                 font-weight: bold;
                 font-size: 20px;
                 border-radius: 0 10px 10px 0;
+                background-color: grey;
                 user-select: none;
                 -webkit-user-select: none;
             }
@@ -84,43 +111,47 @@ export class MyGallery extends LitElement {
             }
             .back:hover,
             .next:hover {
-                background-color: black;
+                color: black;
+                background-color: white;
             }
-            .image-number {
-                color: white;
-                font-size: 12px;
-                padding: 8px 12px;
+            #image-number {
+                color: black;
+                background-color: white;
+                border-radius: 12px 0 0 0;
+                font-size: 16px;
+                margin: 8px;
+                padding: 8px;
                 position: absolute;
                 top: 0;
             }
             .caption-container {
                 text-align: center;
-                background-color: grey;
+                background-color: white;
                 padding: 2px 16px;
-                color: white;
+                color: black;
             }
             .row:after {
                 content: "";
                 display: table;
                 clear: both;
             }
-            .column {
+            #column {
                 float: left;
                 width: 16.66%;
                 display: inline-flex;
             }
             .thumbnail {
-                opacity: 0.6;
+                opacity: 0.4;
                 width: 100%;
                 filter: grayscale(1);
             }
             .thumbnail:hover {
                 cursor: pointer;
-                filter: grayscale(0);
-            }
-            .active,
-            .thumbnail:hover {
                 opacity: 1;
+            }
+            .thumbnail.active{
+                opacity: 1;
+                filter: grayscale(0);
             }
         `;
     }
@@ -133,12 +164,11 @@ export class MyGallery extends LitElement {
                 <img src="${image}" @click="${() => this.showSlides(index)}">
             `)}
         </div>
-        <div class="image-gallery">
+        <div id="image-gallery">
             <div class="image-wrapper">
-                ${this.images.map((image, index) => html`
-                    <div class="image-number">${index} / ${this.images.length}</div>
-                    <img class="image" src="${image}">
-                `)}
+                <div id="image-number">${this.slide + 1} / ${this.images.length}</div>
+                <img id="image" src="${this.images[this.slide]}">
+                <button class="close" @click=${this.toggleshow}>&times;</button>
             </div>
 
             <a class="back" @click="${this.backSlide}"> < </a>
@@ -146,14 +176,12 @@ export class MyGallery extends LitElement {
 
             <div class="caption-container">
                 <p id="caption">
-                    ${this.caption.map((caption, index) => html`
-                        ${caption}
-                    `)}
+                    ${this.caption[this.slide]}
                 </p>
             </div>
 
             <div class="row">
-                <div class="column">
+                <div id="column">
                     ${this.images.map((image, index) => html`
                         <img class="thumbnail" src="${image}" @click="${() => this.showSlides(index)}">
                     `)}
@@ -167,65 +195,64 @@ export class MyGallery extends LitElement {
         return {
             images: { type: Array },
             caption: { type: Array },
-            slide: { type : Number }
+            slide: { type : Number },
+            show: { type: Boolean }
         };
     }
+
+    showSlides(index) 
+    {
+        if(!this.show){
+            this.toggleshow();
+        }
+        if(this.show){
+            this.slide = index;
+            var thumbnailContainer = this.shadowRoot.getElementById("column");
+            const thumbnail = thumbnailContainer.getElementsByClassName("thumbnail");
+            const image = this.shadowRoot.getElementById("image");
+
+            for (let i = 0; i < this.images.length; i++) {
+                if(i === this.slide) {
+                    image.src = this.images[i];
+                    thumbnail[i].classList.add("active");
+                }else{
+                    thumbnail[i].classList.remove("active");
+                }
+            }
+        }
+    }
+
+    backSlide() 
+    {
+        this.slide -= 1;
+
+        if(this.slide === -1){
+            this.slide = this.images.length - 1;
+        }
+
+        this.showSlides(this.slide);
+    }
+
+    nextSlide() 
+    {
+        this.slide += 1;
+
+        if(this.slide === this.images.length){
+            this.slide = 0;
+        }
+
+        this.showSlides(this.slide);
+    }
+
+    toggleshow(){
+        if(this.show == true){
+            this.shadowRoot.getElementById("image-gallery").style.display= 'none';
+            this.show = false;
+        }else{
+            this.shadowRoot.getElementById("image-gallery").style.display = 'block';
+            this.show = true;
+        }
+    }
 }
-
-
-
-// //STILL A MESS BUT I HAVE AN IDEA OF WHAT IM DOING ! (i think)
-
-// // register globally so we can make sure there is only one
-// window.SimpleModal = window.SimpleModal || {};
-// // request if this exists. This helps invoke the element existing in the dom
-// // as well as that there is only one of them. That way we can ensure everything
-// // is rendered through the same modal
-// window.SimpleModal.requestAvailability = () => {
-//     if (!window.SimpleModal.instance) {
-//         window.SimpleModal.instance = document.createElement("simple-modal");
-//         document.body.appendChild(window.SimpleModal.instance);
-//     }
-//     return window.SimpleModal.instance;
-// };
-
-// export const SimpleModalStore = window.SimpleModal.requestAvailability();
-
-// showSlides(n) 
-// {   
-//     this.slide = n;
-    
-//     thumbnail = document.getElementsByClassName("thumbnail");
-//     captionText = document.getElementById("caption");
-
-//     for (i = 0; i < this.images.length; i++) {
-//         if(i !== n) {
-//             this.slide = n;
-//             images[i].style.display = "none";
-//         }
-//     }
-//     for (i = 0; i < thumbnail.length; i++) {
-//         if(i === n) {
-//             thumbnail[i].className.replace("active", "");
-//         }
-//     }
-
-//     this.images[this.slide - 1].style.display = "block";
-//     thumbnail[this.slide - 1].className += "active";
-//     captionText.innerHTML = this.caption[this.slide - 1];
-    
-// }
-
-
-// backSlide() 
-// {
-//   showSlides(this.slide - 1);
-// }
-
-// nextSlide() 
-// {
-//   showSlides(this.slide + 1);
-// }
-
 
 globalThis.customElements.define(MyGallery.tag, MyGallery);
